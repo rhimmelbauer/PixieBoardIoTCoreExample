@@ -22,6 +22,7 @@ for this sample.
 """
 
 # [START iot_mqtt_includes]
+from PixieBoardGPSLocation import PixieBoardGPSLocation
 import argparse
 import datetime
 import os
@@ -222,6 +223,11 @@ def parse_command_line_args():
 # [START iot_mqtt_run]
 def main():
     print("Start")
+    pxbdGPS = PixieBoardGPSLocation()
+    pxbdGPS.EnableATCommands()
+    pxbdGPS.StopSession()
+    pxbdGPS.ConfigureGPSTracking()
+
     global minimum_backoff_time
 
     args = parse_command_line_args()
@@ -243,6 +249,7 @@ def main():
     for i in range(1, args.num_messages + 1):
         # Process network events.
         client.loop()
+        pxbdGPS.GetGPSLocationPretty()
 
         # Wait if backoff is required.
         if should_backoff:
@@ -258,8 +265,8 @@ def main():
             minimum_backoff_time *= 2
             client.connect(args.mqtt_bridge_hostname, args.mqtt_bridge_port)
 
-        payload = '{}/{}-payload-{}'.format(
-                args.registry_id, args.device_id, i)
+        payload = '{}/{}-payload-{}-lat:{}-long:{}'.format(
+                args.registry_id, args.device_id, i, pxbdGPS.Latitude, pxbdGPS.Longitude)
         print('Publishing message {}/{}: \'{}\''.format(
                 i, args.num_messages, payload))
         print(payload)
